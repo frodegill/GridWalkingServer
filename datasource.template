@@ -1,0 +1,11 @@
+[gridwalking]
+Description = gridwalking database
+Trace       = Off
+TraceFile   = stderr
+Driver      = MySQL
+SERVER      = localhost
+PORT        = 3306
+USER        = gridwalking
+PASSWORD    = gridwalking
+DATABASE    = gridwalking
+CharSet     = utf8
