@@ -27,6 +27,9 @@ int crc(const std::string s)
 
 bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, const std::string& name)
 {
+	if (0 == score)
+		return true;
+
 	Poco::Data::Session* session_in_transaction;
 	if (!DB.CreateSession(session_in_transaction))
 		return false;
@@ -194,7 +197,7 @@ void post_method_handler(const std::shared_ptr<restbed::Session> session)
 		path_param_name[1] = 'a'+i;
 		level[i] = std::stoi(request->get_path_parameter(path_param_name));
 		
-		score += level[i]<<(2*i);
+		score += (level[i]<<(2*i)) * (i+1);
 	}
 
 	std::string param_name = request->get_path_parameter("name");
