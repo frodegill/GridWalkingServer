@@ -1,2 +1,5 @@
 passwd
-
+*.dep
+*.bak
+.kdev4/
+*.kdev4
