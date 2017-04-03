@@ -1,5 +1,7 @@
+GridWalkingServer
 passwd
 *.dep
+*.o
 *.bak
 .kdev4/
 *.kdev4
