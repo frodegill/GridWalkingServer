@@ -1,6 +1,10 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#include <memory>
+#include <cstdlib>
+#include <restbed>
+
 #include "poco_glue.h"
 
 #define WORKER_THREADS (4)
@@ -12,9 +16,12 @@
 extern gridwalking::PocoGlue DB;
 
 void log(const std::string& msg);
+
+void append_uint32(std::ostringstream& sb, uint32_t i);
+bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& grid);
+
 int crc(const std::string s);
 
-bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, const std::string& name);
 bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score, const std::string& user_name, std::string& result);
 void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 score, const std::string& name, std::string& result);
 

@@ -1,34 +1,28 @@
-#include <memory>
-#include <cstdlib>
-#include <restbed>
-
 #include "main.h"
 #include "secrets.h"
 
+#include "grids_handler.h"
+#include "highscore_handler.h"
+#include "sync_handler.h"
 
-// Database
-gridwalking::PocoGlue DB;
-
-static const char HEX[] = "0123456789ABCDEF";
+#include "db.h"
 
 
 void log(const std::string& /*msg*/)
 {
 }
 
-bool append_byte(std::ostringstream& sb, const uint8_t b)
+void append_byte(std::ostringstream& sb, const uint8_t b)
 {
-	sb << HEX[(b&0xF0)>>4];
-	sb << HEX[(b&0x0F)];
-	return true;
+	sb << b;
 }
 
-bool append_uint32(std::ostringstream& sb, const uint32_t i)
+void append_uint32(std::ostringstream& sb, uint32_t i)
 {
-	return append_byte(sb, (i&0xFF000000)>>24) &&
-	       append_byte(sb, (i&0x00FF0000)>>16) &&
-	       append_byte(sb, (i&0x0000FF00)>>8) &&
-	       append_byte(sb, i&0x000000FF);
+	append_byte(sb, (i&0xFF000000)>>24);
+	append_byte(sb, (i&0x00FF0000)>>16);
+	append_byte(sb, (i&0x0000FF00)>>8);
+	append_byte(sb, i&0x000000FF);
 }
 
 bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& grid)
@@ -45,7 +39,7 @@ bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::co
 	return true;
 }
 
-int crc(const unsigned char* buffer, size_t length)
+int crc(const uint8_t* buffer, size_t length)
 {
 	int sum1 = CRC_SEED1;
 	int sum2 = CRC_SEED2;
@@ -59,124 +53,7 @@ int crc(const unsigned char* buffer, size_t length)
 
 int crc(const std::string s)
 {
-    return crc(reinterpret_cast<const unsigned char*>(s.c_str()), s.length());
-}
-
-bool persistGrids(Poco::Data::Session* session_in_transaction, const std::string& guid, const restbed::Bytes& body)
-{
-	if (body.empty())
-		return true;
-
-	uint32_t user_id = 0;
-	DEBUG_TRY_CATCH(*session_in_transaction << "SELECT id FROM user WHERE guid=?",
-		Poco::Data::Keywords::into(user_id),
-		Poco::Data::Keywords::useRef(guid),
-		Poco::Data::Keywords::now;)
-
-	restbed::Bytes::const_iterator iter = body.begin(), end=body.end();
-	uint32_t grid;
-	while (fetch_uint32(iter, end, grid) && 0xFFFFFFFF!=grid)
-	{
-		DEBUG_TRY_CATCH(*session_in_transaction << "DELETE FROM grids WHERE owner=? AND grid=?",
-			Poco::Data::Keywords::use(user_id),
-			Poco::Data::Keywords::use(grid),
-			Poco::Data::Keywords::now;)
-	}
-
-	int i;
-	for (i=0; i<14; i++)
-	{
-		while (fetch_uint32(iter, end, grid) && 0xFFFFFFFF!=grid)
-		{
-			DEBUG_TRY_CATCH(*session_in_transaction << "INSERT INTO grids (owner, level, grid) VALUE (?,?,?)",
-				Poco::Data::Keywords::use(user_id),
-				Poco::Data::Keywords::use(i),
-				Poco::Data::Keywords::use(grid),
-				Poco::Data::Keywords::now;)
-		}
-	}
-
-	return true;
-}
-
-bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, Poco::UInt32 bonus, const std::string& name, const restbed::Bytes& body)
-{
-	if (0 == score)
-		return true;
-
-	Poco::Data::Session* session_in_transaction;
-	if (!DB.CreateSession(session_in_transaction))
-		return false;
-	
-	int exist_count = 0;
-	DEBUG_TRY_CATCH(*session_in_transaction << "SELECT COUNT(*) FROM user WHERE id=?",
-		Poco::Data::Keywords::into(exist_count),
-		Poco::Data::Keywords::useRef(guid),
-		Poco::Data::Keywords::now;)
-
-	if (exist_count == 0)
-	{
-		DEBUG_TRY_CATCH(*session_in_transaction << "INSERT INTO user (id, username, score, l13, l12, l11, l10, l9, l8, l7, l6, l5, "\
-		                                                             "l4, l3, l2, l1, l0, bonus) "\
-		                                                             "VALUE (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-			Poco::Data::Keywords::useRef(guid),
-			Poco::Data::Keywords::useRef(name),
-			Poco::Data::Keywords::use(score),
-			Poco::Data::Keywords::use(levels[13]),
-			Poco::Data::Keywords::use(levels[12]),
-			Poco::Data::Keywords::use(levels[11]),
-			Poco::Data::Keywords::use(levels[10]),
-			Poco::Data::Keywords::use(levels[9]),
-			Poco::Data::Keywords::use(levels[8]),
-			Poco::Data::Keywords::use(levels[7]),
-			Poco::Data::Keywords::use(levels[6]),
-			Poco::Data::Keywords::use(levels[5]),
-			Poco::Data::Keywords::use(levels[4]),
-			Poco::Data::Keywords::use(levels[3]),
-			Poco::Data::Keywords::use(levels[2]),
-			Poco::Data::Keywords::use(levels[1]),
-			Poco::Data::Keywords::use(levels[0]),
-			Poco::Data::Keywords::use(bonus),
-			Poco::Data::Keywords::now;)
-	}
-	else
-	{
-		DEBUG_TRY_CATCH(*session_in_transaction << "UPDATE user SET username=?, score=?, l13=?, l12=?, l11=?, l10=?, l9=?, l8=?, "\
-		                                                           "l7=?, l6=?, l5=?, l4=?, l3=?, l2=?, l1=?, l0=? WHERE id=?",
-			Poco::Data::Keywords::useRef(name),
-			Poco::Data::Keywords::use(score),
-			Poco::Data::Keywords::use(levels[13]),
-			Poco::Data::Keywords::use(levels[12]),
-			Poco::Data::Keywords::use(levels[11]),
-			Poco::Data::Keywords::use(levels[10]),
-			Poco::Data::Keywords::use(levels[9]),
-			Poco::Data::Keywords::use(levels[8]),
-			Poco::Data::Keywords::use(levels[7]),
-			Poco::Data::Keywords::use(levels[6]),
-			Poco::Data::Keywords::use(levels[5]),
-			Poco::Data::Keywords::use(levels[4]),
-			Poco::Data::Keywords::use(levels[3]),
-			Poco::Data::Keywords::use(levels[2]),
-			Poco::Data::Keywords::use(levels[1]),
-			Poco::Data::Keywords::use(levels[0]),
-			Poco::Data::Keywords::useRef(guid),
-			Poco::Data::Keywords::now;)
-	}
-
-	if (!persistGrids(session_in_transaction, guid, body))
-	{
-		DB.ReleaseSession(session_in_transaction, gridwalking::PocoGlue::ROLLBACK);
-		return false;
-	}
-
-	DB.ReleaseSession(session_in_transaction, gridwalking::PocoGlue::COMMIT);
-	return true;
-}
-
-bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, const std::string& name)
-{
-	restbed::Bytes empty_body;
-	return persist(guid, levels, score, 0, name, empty_body);
+    return crc(reinterpret_cast<const uint8_t*>(s.c_str()), s.length());
 }
 
 bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score, const std::string& user_name, std::string& result)
@@ -266,174 +143,6 @@ void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 sco
 	result.append(";");
 	result.append(username);
 	result.append("\n");
-}
-
-//DEPRECATED New clients calls sync_handler
-void highscore_handler(const std::shared_ptr<restbed::Session> session)
-{
-	const std::shared_ptr<const restbed::Request> request = session->get_request();
-
-	std::string param_guid = request->get_path_parameter("guid");
-
-	Poco::UInt32 score = 0;
-	Poco::UInt32 level[14];
-	int i;
-	char path_param_name[3];
-	path_param_name[0] = 'l';
-	path_param_name[2] = 0;
-	for (i=0; i<14; i++)
-	{
-		path_param_name[1] = 'a'+i;
-		level[i] = std::stoi(request->get_path_parameter(path_param_name));
-		
-		score += (level[i]<<(2*i)) * (i+1);
-	}
-
-	std::string param_name = request->get_path_parameter("name");
-
-	int param_crc = 0;
-	if (request->has_query_parameter("crc"))
-	{
-		param_crc = std::stoi(request->get_query_parameter("crc"));
-	}
-
-	std::string path = request->get_path();
-	int calculated_crc = crc(path);
-
-	int response_status;
-	std::string response_body;
-	if (calculated_crc != param_crc)
-	{
-		response_status = restbed::NOT_ACCEPTABLE;
-		response_body = "CRC error";
-#ifdef DBG
-		response_body += ". Expected "+std::to_string(calculated_crc);
-#endif
-	}
-	else
-	{
-		if (persist(param_guid, level, score, param_name) &&
-		    render_highscore_list(level, score, param_name, response_body))
-		{
-			response_status = restbed::OK;
-		}
-		else
-		{
-			response_status = restbed::SERVICE_UNAVAILABLE;
-			response_body = "";
-		}
-	}
-	
-	session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
-}
-
-void sync_handler(const std::shared_ptr<restbed::Session> session)
-{
-	const std::shared_ptr<const restbed::Request> request = session->get_request();
-
-	std::string param_guid = request->get_path_parameter("guid");
-
-	Poco::UInt32 score = 0;
-	Poco::UInt32 bonus = std::stoi(request->get_path_parameter("bonus"));
-	Poco::UInt32 level[14];
-	int i;
-	char path_param_name[3];
-	path_param_name[0] = 'l';
-	path_param_name[2] = 0;
-	for (i=0; i<14; i++)
-	{
-		path_param_name[1] = 'a'+i;
-		level[i] = std::stoi(request->get_path_parameter(path_param_name));
-		
-		score += (level[i]<<(2*i)) * (i+1);
-	}
-
-	std::string param_name = request->get_path_parameter("name");
-
-	int param_crc = 0;
-	if (request->has_query_parameter("crc"))
-	{
-		param_crc = std::stoi(request->get_query_parameter("crc"));
-	}
-
-	std::string path = request->get_path();
-	int calculated_crc = crc(path);
-
-	int response_status;
-	std::string response_body;
-	if (calculated_crc != param_crc)
-	{
-		response_status = restbed::NOT_ACCEPTABLE;
-		response_body = "CRC error";
-#ifdef DBG
-		response_body += ". Expected "+std::to_string(calculated_crc);
-#endif
-	}
-	else
-	{
-		if (persist(param_guid, level, score, bonus, param_name, request->get_body()) &&
-		    render_highscore_list(level, score, param_name, response_body))
-		{
-			response_status = restbed::OK;
-		}
-		else
-		{
-			response_status = restbed::SERVICE_UNAVAILABLE;
-			response_body = "";
-		}
-	}
-	
-	const restbed::Bytes body = request->get_body();
-	restbed::Bytes::const_iterator iter = body.begin(), end=body.end();
-	uint32_t grid;
-	while (fetch_uint32(iter, end, grid) && 0xFFFFFFFF!=grid)
-	{
-	}
-	
-	session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
-}
-
-void grids_handler(const std::shared_ptr<restbed::Session> session)
-{
-	const std::shared_ptr<const restbed::Request> request = session->get_request();
-
-	std::string param_guid = request->get_path_parameter("guid");
-    
-	int response_status = restbed::OK;
-	std::string response_body;
-
-    Poco::Data::Session* db_session;
-	if (!DB.CreateSession(db_session))
-    {
-        response_status = restbed::SERVICE_UNAVAILABLE;
-        response_body = "";
-    }
-    else
-    {
-        std::ostringstream sb;
-        
-        int i;
-        for (i=0; i<14; i++)
-        {
-            Poco::UInt32 grid;
-            Poco::Data::Statement statement(*db_session);
-            statement << "SELECT g.grid FROM user u, grid g WHERE u.guid=? AND u.id=g.owner AND g.level=?",
-                Poco::Data::Keywords::into(grid),
-                Poco::Data::Keywords::use(param_guid),
-                Poco::Data::Keywords::use(i),
-                Poco::Data::Keywords::range<Poco::Data::Limit::SizeT>(0,1);
-
-            while (!statement.done() && 0<statement.execute())
-            {
-                append_uint32(sb, grid);
-            }
-
-            append_uint32(sb, 0xFFFFFFFF);
-        }
-        response_body = sb.str();
-    }
-	DB.ReleaseSession(db_session, gridwalking::PocoGlue::COMMIT);
-	session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
 }
 
 int main(int /*argc*/, char** /*argv*/)
