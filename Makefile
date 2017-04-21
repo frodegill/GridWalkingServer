@@ -15,14 +15,14 @@ DEPS = $(OBJECTS:.o=.dep)
 
 ######## compiler- and linker settings #########
 CXX = g++
-CXXFLAGS = -I/usr/local/include/restbed -I/usr/local/include -I/usr/include -W -Wall -Werror -pipe -std=c++14
+CXXFLAGS = -I/usr/local/include/corvusoft/restbed -I/usr/local/include -I/usr/include -W -Wall -Werror -pipe -std=c++14
 
 ifdef DEBUG_INFO
  CXXFLAGS += -g -DDBG
- LIBSFLAGS = -L/usr/local/lib/restbed -L/usr/local/lib -lPocoDatad -lPocoFoundationd
+ LIBSFLAGS = -L/usr/local/library -L/usr/local/lib -lPocoDatad -lPocoFoundationd
 else
  CXXFLAGS += -O3
- LIBSFLAGS = -L/usr/local/lib/restbed -L/usr/local/lib -lPocoData -lPocoFoundation
+ LIBSFLAGS = -L/usr/local/library -L/usr/local/lib -lPocoData -lPocoFoundation
 endif
 
 ifdef USE_ODBC_CONNECTION
