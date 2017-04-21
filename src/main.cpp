@@ -8,8 +8,9 @@
 #include "db.h"
 
 
-void log(const std::string& /*msg*/)
+void log(const std::string& msg)
 {
+	fprintf(stderr, "Log: %s\n", msg.c_str());
 }
 
 void append_byte(std::ostringstream& sb, const uint8_t b)
@@ -145,6 +146,24 @@ void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 sco
 	result.append("\n");
 }
 
+void printGreeting()
+{
+	Poco::Data::Session* session;
+	if (!DB.CreateSession(session))
+	{
+		fprintf(stdout, "Creating session failed\n");
+		return;
+	}
+	
+	Poco::UInt32 highscore = 0;
+	DEBUG_TRY_CATCH(*session << "SELECT MAX(score) FROM user",
+		Poco::Data::Keywords::into(highscore),
+		Poco::Data::Keywords::now;)
+
+	fprintf(stdout, "GridWalkingServer operational. Current highscore:%d\n", highscore);
+	DB.ReleaseSession(session, gridwalking::PocoGlue::IGNORE);
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
 	if (!DB.Initialize(DB_CONNECTION_STRING))
@@ -166,6 +185,7 @@ int main(int /*argc*/, char** /*argv*/)
 	grids_resource->set_path("grids/{guid: .*}");
 	grids_resource->set_method_handler("GET", grids_handler);
 
+#ifdef SECURE
 	auto ssl_settings = std::make_shared<restbed::SSLSettings>();
 	ssl_settings->set_port(REST_PORT);
 	ssl_settings->set_http_disabled(true);
@@ -176,18 +196,26 @@ int main(int /*argc*/, char** /*argv*/)
 	ssl_settings->set_tlsv12_enabled(true);
 	ssl_settings->set_private_key(restbed::Uri("file://gill-roxrud.dyndns.org.key"));
 	ssl_settings->set_certificate_chain(restbed::Uri("file://fullchain.cer"));
+#endif
 
 	auto settings = std::make_shared<restbed::Settings>();
 	settings->set_root("gridwalking");
 	settings->set_connection_timeout(std::chrono::seconds(10));
 	settings->set_worker_limit(WORKER_THREADS);
+#ifdef SECURE
 	settings->set_ssl_settings(ssl_settings);
+#else
+    settings->set_port(REST_PORT);
+#endif
 	settings->set_default_header("Connection", "close");
 
 	restbed::Service service;
 	service.publish(highscore_resource);
 	service.publish(sync_resource);
 	service.publish(grids_resource);
+
+	printGreeting();
+
 	service.start(settings);
 	
 	return EXIT_SUCCESS;

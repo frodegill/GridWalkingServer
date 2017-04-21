@@ -9,6 +9,7 @@
 
 #define WORKER_THREADS (4)
 #define REST_PORT      (1416)
+#define SECURE
 
 #define MAX_HIGHSCORE_ENTRIES (10)
 
