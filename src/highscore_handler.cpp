@@ -1,5 +1,7 @@
 #include "highscore_handler.h"
 
+#include "db.h"
+
 
 //DEPRECATED New clients calls sync_handler
 void highscore_handler(const std::shared_ptr<restbed::Session> session)
