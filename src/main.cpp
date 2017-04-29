@@ -13,17 +13,17 @@ void log(const std::string& msg)
 	fprintf(stderr, "Log: %s\n", msg.c_str());
 }
 
-void append_byte(std::ostringstream& sb, const uint8_t b)
+void append_byte(restbed::Bytes& bytes, const uint8_t b)
 {
-	sb << b;
+	bytes.push_back(b);
 }
 
-void append_uint32(std::ostringstream& sb, uint32_t i)
+void append_uint32(restbed::Bytes& bytes, uint32_t i)
 {
-	append_byte(sb, (i&0xFF000000)>>24);
-	append_byte(sb, (i&0x00FF0000)>>16);
-	append_byte(sb, (i&0x0000FF00)>>8);
-	append_byte(sb, i&0x000000FF);
+	append_byte(bytes, (i&0xFF000000)>>24);
+	append_byte(bytes, (i&0x00FF0000)>>16);
+	append_byte(bytes, (i&0x0000FF00)>>8);
+	append_byte(bytes, i&0x000000FF);
 }
 
 bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& grid)
@@ -176,7 +176,7 @@ int main(int /*argc*/, char** /*argv*/)
 	highscore_resource->set_method_handler("POST", highscore_handler);
 
 	auto sync_resource = std::make_shared<restbed::Resource>();
-	sync_resource->set_path("highscore/{guid: .*}/{bonus: [0-9]*}/{ln: [0-9]*}/{lm: [0-9]*}/{ll: [0-9]*}/{lk: [0-9]*}/{lj: [0-9]*}"\
+	sync_resource->set_path("sync/{guid: .*}/{bonus: [0-9]*}/{ln: [0-9]*}/{lm: [0-9]*}/{ll: [0-9]*}/{lk: [0-9]*}/{lj: [0-9]*}"\
 	                                       "/{li: [0-9]*}/{lh: [0-9]*}/{lg: [0-9]*}/{lf: [0-9]*}/{le: [0-9]*}"\
 																				 "/{ld: [0-9]*}/{lc: [0-9]*}/{lb: [0-9]*}/{la: [0-9]*}/{name: .*}");
 	sync_resource->set_method_handler("POST", sync_handler);

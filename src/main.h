@@ -9,7 +9,9 @@
 
 #define WORKER_THREADS (4)
 #define REST_PORT      (1416)
-#define SECURE
+#ifndef DBG
+ #define SECURE
+#endif
 
 #define MAX_HIGHSCORE_ENTRIES (10)
 
@@ -18,7 +20,7 @@ extern gridwalking::PocoGlue DB;
 
 void log(const std::string& msg);
 
-void append_uint32(std::ostringstream& sb, uint32_t i);
+void append_uint32(restbed::Bytes& bytes, uint32_t i);
 bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& grid);
 
 int crc(const std::string s);
