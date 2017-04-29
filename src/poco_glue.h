@@ -15,10 +15,13 @@
 #include <Poco/Nullable.h>
 #include <Poco/Data/SessionPool.h>
 
-#ifdef DEBUG
+#include "main.h"
+
+
+#ifdef DBG
 # define DEBUG_TRY_CATCH(...)	try {__VA_ARGS__} \
-                              catch (Poco::Exception e) {::Log("error")<<e.displayText();} \
-                              catch (...) {::Log("error")<<"Got generic exception";}
+                              catch (Poco::Exception e) {::log(e.displayText());} \
+                              catch (...) {::log("Got generic exception\n");}
 #else
 # define DEBUG_TRY_CATCH(...)	__VA_ARGS__
 #endif
