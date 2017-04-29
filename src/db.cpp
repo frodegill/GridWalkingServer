@@ -20,7 +20,7 @@ bool persistGrids(Poco::Data::Session* session_in_transaction, const std::string
 	uint32_t grid;
 	while (fetch_uint32(iter, end, grid) && 0xFFFFFFFF!=grid)
 	{
-		DEBUG_TRY_CATCH(*session_in_transaction << "DELETE FROM grids WHERE owner=? AND grid=?",
+		DEBUG_TRY_CATCH(*session_in_transaction << "DELETE FROM grid WHERE owner=? AND grid=?",
 			Poco::Data::Keywords::use(user_id),
 			Poco::Data::Keywords::use(grid),
 			Poco::Data::Keywords::now;)
@@ -31,7 +31,12 @@ bool persistGrids(Poco::Data::Session* session_in_transaction, const std::string
 	{
 		while (fetch_uint32(iter, end, grid) && 0xFFFFFFFF!=grid)
 		{
-			DEBUG_TRY_CATCH(*session_in_transaction << "INSERT INTO grids (owner, level, grid) VALUE (?,?,?)",
+			DEBUG_TRY_CATCH(*session_in_transaction << "DELETE FROM grid WHERE owner=? AND grid=?",
+				Poco::Data::Keywords::use(user_id),
+				Poco::Data::Keywords::use(grid),
+				Poco::Data::Keywords::now;)
+
+			DEBUG_TRY_CATCH(*session_in_transaction << "INSERT INTO grid (owner, level, grid) VALUE (?,?,?)",
 				Poco::Data::Keywords::use(user_id),
 				Poco::Data::Keywords::use(i),
 				Poco::Data::Keywords::use(grid),
@@ -52,14 +57,14 @@ bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, 
 		return false;
 	
 	int exist_count = 0;
-	DEBUG_TRY_CATCH(*session_in_transaction << "SELECT COUNT(*) FROM user WHERE id=?",
+	DEBUG_TRY_CATCH(*session_in_transaction << "SELECT COUNT(*) FROM user WHERE guid=?",
 		Poco::Data::Keywords::into(exist_count),
 		Poco::Data::Keywords::useRef(guid),
 		Poco::Data::Keywords::now;)
 
 	if (exist_count == 0)
 	{
-		DEBUG_TRY_CATCH(*session_in_transaction << "INSERT INTO user (id, username, score, l13, l12, l11, l10, l9, l8, l7, l6, l5, "\
+		DEBUG_TRY_CATCH(*session_in_transaction << "INSERT INTO user (guid, username, score, l13, l12, l11, l10, l9, l8, l7, l6, l5, "\
 		                                                             "l4, l3, l2, l1, l0, bonus) "\
 		                                                             "VALUE (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 			Poco::Data::Keywords::useRef(guid),
@@ -85,7 +90,8 @@ bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, 
 	else
 	{
 		DEBUG_TRY_CATCH(*session_in_transaction << "UPDATE user SET username=?, score=?, l13=?, l12=?, l11=?, l10=?, l9=?, l8=?, "\
-		                                                           "l7=?, l6=?, l5=?, l4=?, l3=?, l2=?, l1=?, l0=? WHERE id=?",
+		                                                           "l7=?, l6=?, l5=?, l4=?, l3=?, l2=?, l1=?, l0=?, bonus=? "\
+		                                                           "WHERE guid=?",
 			Poco::Data::Keywords::useRef(name),
 			Poco::Data::Keywords::use(score),
 			Poco::Data::Keywords::use(levels[13]),
@@ -102,18 +108,14 @@ bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, 
 			Poco::Data::Keywords::use(levels[2]),
 			Poco::Data::Keywords::use(levels[1]),
 			Poco::Data::Keywords::use(levels[0]),
+			Poco::Data::Keywords::use(bonus),
 			Poco::Data::Keywords::useRef(guid),
 			Poco::Data::Keywords::now;)
 	}
 
-	if (!persistGrids(session_in_transaction, guid, body))
-	{
-		DB.ReleaseSession(session_in_transaction, gridwalking::PocoGlue::ROLLBACK);
-		return false;
-	}
-
-	DB.ReleaseSession(session_in_transaction, gridwalking::PocoGlue::COMMIT);
-	return true;
+	bool success = persistGrids(session_in_transaction, guid, body);
+	DB.ReleaseSession(session_in_transaction, success ? gridwalking::PocoGlue::COMMIT : gridwalking::PocoGlue::ROLLBACK);
+	return success;
 }
 
 bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, const std::string& name)
