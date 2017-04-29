@@ -47,7 +47,14 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 	}
 	else
 	{
-		if (persist(param_guid, level, score, bonus, param_name, request->get_body()) &&
+		size_t length = request->get_header("Content-Length", 0);
+		restbed::Bytes body;
+		session->fetch(length, [request,&body](const std::shared_ptr<restbed::Session>, const restbed::Bytes& fetched_body)
+		{
+			body = fetched_body;
+		} );
+
+		if (persist(param_guid, level, score, bonus, param_name, body) &&
 		    render_highscore_list(level, score, param_name, response_body))
 		{
 			response_status = restbed::OK;
@@ -59,12 +66,5 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 		}
 	}
 
-	const restbed::Bytes body = request->get_body();
-	restbed::Bytes::const_iterator iter = body.begin(), end=body.end();
-	uint32_t grid;
-	while (fetch_uint32(iter, end, grid) && 0xFFFFFFFF!=grid)
-	{
-	}
-	
 	session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
 }
