@@ -55,7 +55,7 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 		} );
 
 		if (persist(param_guid, level, score, bonus, param_name, body) &&
-		    render_highscore_list(level, score, param_name, response_body))
+		    render_highscore_list(level, score, true, param_guid, param_name, response_body))
 		{
 			response_status = restbed::OK;
 		}

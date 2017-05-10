@@ -48,7 +48,7 @@ void highscore_handler(const std::shared_ptr<restbed::Session> session)
 	else
 	{
 		if (persist(param_guid, level, score, param_name) &&
-		    render_highscore_list(level, score, param_name, response_body))
+		    render_highscore_list(level, score, false, param_guid, param_name, response_body))
 		{
 			response_status = restbed::OK;
 		}

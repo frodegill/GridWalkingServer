@@ -57,7 +57,8 @@ int crc(const std::string s)
     return crc(reinterpret_cast<const uint8_t*>(s.c_str()), s.length());
 }
 
-bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score, const std::string& user_name, std::string& result)
+bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score,
+													 bool include_guid, const std::string& user_guid, const std::string& user_name, std::string& result)
 {
 	Poco::Data::Session* session;
 	if (!DB.CreateSession(session))
@@ -81,13 +82,15 @@ bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score, c
 	result.append(std::to_string(player_count));
 	result.append("\n");
 
+	std::string guid;
 	std::string name;
 	Poco::UInt32 score;
 	Poco::UInt32 levels[14];
 	size_t max_highscore_entries = MAX_HIGHSCORE_ENTRIES;
 	Poco::Data::Statement statement(*session);
-	statement << "SELECT username, score, l13, l12, l11, l10, l9, l8, l7, l6, l5, l4, l3, l2, l1, l0 "\
+	statement << "SELECT guid, username, score, l13, l12, l11, l10, l9, l8, l7, l6, l5, l4, l3, l2, l1, l0 "\
 	             "FROM user ORDER BY score DESC LIMIT ?",
+		Poco::Data::Keywords::into(guid),
 		Poco::Data::Keywords::into(name),
 		Poco::Data::Keywords::into(score),
 		Poco::Data::Keywords::into(levels[13]),
@@ -118,19 +121,20 @@ bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score, c
 			old_score = score;
 			old_position = position;
 		}
-		append_result(old_position, levels, score, name, result);
+		append_result(old_position, levels, score, include_guid, guid, name, result);
 	}
 
 	if (position > MAX_HIGHSCORE_ENTRIES)
 	{
-		append_result(position, user_levels, user_score, user_name, result);
+		append_result(position, user_levels, user_score, include_guid, user_guid, user_name, result);
 	}
 
 	DB.ReleaseSession(session, gridwalking::PocoGlue::IGNORE);
 	return true;
 }
 
-void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 score, const std::string& username, std::string& result)
+void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 score,
+									 bool include_guid, const std::string& guid, const std::string& username, std::string& result)
 {
 	result.append(std::to_string(position));
 	result.append(";");
@@ -142,6 +146,11 @@ void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 sco
 	}
 	result.append(std::to_string(score));
 	result.append(";");
+	if (include_guid)
+	{
+		result.append(guid);
+		result.append(";");
+	}
 	result.append(username);
 	result.append("\n");
 }
