@@ -4,6 +4,7 @@
 #include "grids_handler.h"
 #include "highscore_handler.h"
 #include "sync_handler.h"
+#include "restbed/custom_logger.hpp"
 
 #include "db.h"
 
@@ -222,6 +223,7 @@ int main(int /*argc*/, char** /*argv*/)
 	service.publish(highscore_resource);
 	service.publish(sync_resource);
 	service.publish(grids_resource);
+  service.set_logger(make_shared<CustomLogger>());
 
 	printGreeting();
 

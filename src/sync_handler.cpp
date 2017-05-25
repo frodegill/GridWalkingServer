@@ -2,6 +2,8 @@
 
 #include "db.h"
 
+static const char HEX[] = "0123456789ABCDEF";
+
 
 void sync_handler(const std::shared_ptr<restbed::Session> session)
 {
@@ -53,6 +55,19 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 		{
 			body = fetched_body;
 		} );
+		
+		fprintf(stdout, "Got %ld bytes, fetched %ld\n", length, body.size());
+		size_t i;
+		for (i=0; i<length; i++)
+		{
+			fputc(HEX[(body.at(i)&0xF0)>>4], stdout);
+			fputc(HEX[body.at(i)&0x0F], stdout);
+			if (3==(i%4))
+			{
+				fputc(' ', stdout);
+			}
+		}
+		fputc('\n', stdout);
 
 		if (persist(param_guid, level, score, bonus, param_name, body) &&
 		    render_highscore_list(level, score, true, param_guid, param_name, response_body))
