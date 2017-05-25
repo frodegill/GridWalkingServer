@@ -58,7 +58,7 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 		
 		fprintf(stdout, "Got %ld bytes, fetched %ld\n", length, body.size());
 		size_t i;
-		for (i=0; i<length; i++)
+		for (i=0; i<body.size(); i++)
 		{
 			fputc(HEX[(body.at(i)&0xF0)>>4], stdout);
 			fputc(HEX[body.at(i)&0x0F], stdout);
