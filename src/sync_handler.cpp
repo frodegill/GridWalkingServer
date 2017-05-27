@@ -46,40 +46,61 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 #ifdef DBG
 		response_body += ". Expected "+std::to_string(calculated_crc);
 #endif
+		session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
 	}
 	else
 	{
 		size_t length = request->get_header("Content-Length", 0);
-		restbed::Bytes body;
-		session->fetch(length, [request,&body](const std::shared_ptr<restbed::Session>, const restbed::Bytes& fetched_body)
+		if (length > 0)
 		{
-			body = fetched_body;
-		} );
-		
-		fprintf(stdout, "Got %ld bytes, fetched %ld\n", length, body.size());
-		size_t i;
-		for (i=0; i<body.size(); i++)
-		{
-			fputc(HEX[(body.at(i)&0xF0)>>4], stdout);
-			fputc(HEX[body.at(i)&0x0F], stdout);
-			if (3==(i%4))
-			{
-				fputc(' ', stdout);
-			}
-		}
-		fputc('\n', stdout);
+			fprintf(stdout, "Provides %ld bytes\n", length);
 
-		if (persist(param_guid, level, score, bonus, param_name, body) &&
-		    render_highscore_list(level, score, true, param_guid, param_name, response_body))
-		{
-			response_status = restbed::OK;
+			session->fetch(length, [param_guid,level,score,bonus,param_name](const std::shared_ptr<restbed::Session> session, const restbed::Bytes& body)
+			{
+				fprintf(stdout, "Within Lambda: %ld bytes\n", body.size());
+
+				size_t i;
+				for (i=0; i<body.size(); i++)
+				{
+					fputc(HEX[(body.at(i)&0xF0)>>4], stdout);
+					fputc(HEX[body.at(i)&0x0F], stdout);
+					if (3==(i%4))
+					{
+						fputc(' ', stdout);
+					}
+				}
+				fputc('\n', stdout);
+				
+				int response_status;
+				std::string response_body;
+				if (persist(param_guid, level, score, bonus, param_name, body) &&
+				    render_highscore_list(level, score, true, param_guid, param_name, response_body))
+				{
+					response_status = restbed::OK;
+				}
+				else
+				{
+					response_status = restbed::SERVICE_UNAVAILABLE;
+					response_body = "";
+				}
+
+				session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
+			} );
 		}
 		else
 		{
-			response_status = restbed::SERVICE_UNAVAILABLE;
-			response_body = "";
+			fprintf(stdout, "Provided no body\n");
+
+			if (render_highscore_list(level, score, true, param_guid, param_name, response_body)) {
+				response_status = restbed::OK;
+			}
+			else
+			{
+				response_status = restbed::SERVICE_UNAVAILABLE;
+				response_body = "";
+			}
+			
+			session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
 		}
 	}
-
-	session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
 }
