@@ -47,7 +47,7 @@ bool persistGrids(Poco::Data::Session* session_in_transaction, const std::string
 	return true;
 }
 
-bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, Poco::UInt32 bonus, const std::string& name, const restbed::Bytes& body)
+bool persist(const std::string& guid, const Poco::UInt32* levels, Poco::UInt32 score, Poco::UInt32 bonus, const std::string& name, const restbed::Bytes& body)
 {
 	if (0 == score)
 		return true;
@@ -70,20 +70,20 @@ bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, 
 			Poco::Data::Keywords::useRef(guid),
 			Poco::Data::Keywords::useRef(name),
 			Poco::Data::Keywords::use(score),
-			Poco::Data::Keywords::use(levels[13]),
-			Poco::Data::Keywords::use(levels[12]),
-			Poco::Data::Keywords::use(levels[11]),
-			Poco::Data::Keywords::use(levels[10]),
-			Poco::Data::Keywords::use(levels[9]),
-			Poco::Data::Keywords::use(levels[8]),
-			Poco::Data::Keywords::use(levels[7]),
-			Poco::Data::Keywords::use(levels[6]),
-			Poco::Data::Keywords::use(levels[5]),
-			Poco::Data::Keywords::use(levels[4]),
-			Poco::Data::Keywords::use(levels[3]),
-			Poco::Data::Keywords::use(levels[2]),
-			Poco::Data::Keywords::use(levels[1]),
-			Poco::Data::Keywords::use(levels[0]),
+			Poco::Data::Keywords::useRef(levels[13]),
+			Poco::Data::Keywords::useRef(levels[12]),
+			Poco::Data::Keywords::useRef(levels[11]),
+			Poco::Data::Keywords::useRef(levels[10]),
+			Poco::Data::Keywords::useRef(levels[9]),
+			Poco::Data::Keywords::useRef(levels[8]),
+			Poco::Data::Keywords::useRef(levels[7]),
+			Poco::Data::Keywords::useRef(levels[6]),
+			Poco::Data::Keywords::useRef(levels[5]),
+			Poco::Data::Keywords::useRef(levels[4]),
+			Poco::Data::Keywords::useRef(levels[3]),
+			Poco::Data::Keywords::useRef(levels[2]),
+			Poco::Data::Keywords::useRef(levels[1]),
+			Poco::Data::Keywords::useRef(levels[0]),
 			Poco::Data::Keywords::use(bonus),
 			Poco::Data::Keywords::now;)
 	}
@@ -94,20 +94,20 @@ bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, 
 		                                                           "WHERE guid=?",
 			Poco::Data::Keywords::useRef(name),
 			Poco::Data::Keywords::use(score),
-			Poco::Data::Keywords::use(levels[13]),
-			Poco::Data::Keywords::use(levels[12]),
-			Poco::Data::Keywords::use(levels[11]),
-			Poco::Data::Keywords::use(levels[10]),
-			Poco::Data::Keywords::use(levels[9]),
-			Poco::Data::Keywords::use(levels[8]),
-			Poco::Data::Keywords::use(levels[7]),
-			Poco::Data::Keywords::use(levels[6]),
-			Poco::Data::Keywords::use(levels[5]),
-			Poco::Data::Keywords::use(levels[4]),
-			Poco::Data::Keywords::use(levels[3]),
-			Poco::Data::Keywords::use(levels[2]),
-			Poco::Data::Keywords::use(levels[1]),
-			Poco::Data::Keywords::use(levels[0]),
+			Poco::Data::Keywords::useRef(levels[13]),
+			Poco::Data::Keywords::useRef(levels[12]),
+			Poco::Data::Keywords::useRef(levels[11]),
+			Poco::Data::Keywords::useRef(levels[10]),
+			Poco::Data::Keywords::useRef(levels[9]),
+			Poco::Data::Keywords::useRef(levels[8]),
+			Poco::Data::Keywords::useRef(levels[7]),
+			Poco::Data::Keywords::useRef(levels[6]),
+			Poco::Data::Keywords::useRef(levels[5]),
+			Poco::Data::Keywords::useRef(levels[4]),
+			Poco::Data::Keywords::useRef(levels[3]),
+			Poco::Data::Keywords::useRef(levels[2]),
+			Poco::Data::Keywords::useRef(levels[1]),
+			Poco::Data::Keywords::useRef(levels[0]),
 			Poco::Data::Keywords::use(bonus),
 			Poco::Data::Keywords::useRef(guid),
 			Poco::Data::Keywords::now;)
@@ -118,7 +118,7 @@ bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, 
 	return success;
 }
 
-bool persist(const std::string& guid, Poco::UInt32* levels, Poco::UInt32 score, const std::string& name)
+bool persist(const std::string& guid, const Poco::UInt32* levels, Poco::UInt32 score, const std::string& name)
 {
 	restbed::Bytes empty_body;
 	return persist(guid, levels, score, 0, name, empty_body);

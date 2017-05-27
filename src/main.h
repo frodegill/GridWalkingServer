@@ -25,9 +25,9 @@ bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::co
 
 int crc(const std::string s);
 
-bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score,
+bool render_highscore_list(const Poco::UInt32* user_levels, Poco::UInt32 user_score,
 													 bool include_guid, const std::string& user_guid, const std::string& user_name, std::string& result);
-void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 score,
+void append_result(Poco::UInt32 position, const Poco::UInt32* levels, Poco::UInt32 score,
 									 bool include_guid, const std::string& guid, const std::string& name, std::string& result);
 
 int main(int argc, char** argv);

@@ -58,7 +58,7 @@ int crc(const std::string s)
     return crc(reinterpret_cast<const uint8_t*>(s.c_str()), s.length());
 }
 
-bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score,
+bool render_highscore_list(const Poco::UInt32* user_levels, Poco::UInt32 user_score,
 													 bool include_guid, const std::string& user_guid, const std::string& user_name, std::string& result)
 {
 	Poco::Data::Session* session;
@@ -134,7 +134,7 @@ bool render_highscore_list(Poco::UInt32* user_levels, Poco::UInt32 user_score,
 	return true;
 }
 
-void append_result(Poco::UInt32 position, Poco::UInt32* levels, Poco::UInt32 score,
+void append_result(Poco::UInt32 position, const Poco::UInt32* levels, Poco::UInt32 score,
 									 bool include_guid, const std::string& guid, const std::string& username, std::string& result)
 {
 	result.append(std::to_string(position));
