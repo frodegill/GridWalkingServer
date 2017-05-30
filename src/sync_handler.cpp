@@ -64,11 +64,15 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 				{
 					fputc(HEX[(body.at(i)&0xF0)>>4], stdout);
 					fputc(HEX[body.at(i)&0x0F], stdout);
-					if (3==(i%4))
+					if (39==(i%40))
+					{
+						fputc('\n', stdout);
+					} else if (3==(i%4))
 					{
 						fputc(' ', stdout);
 					}
 				}
+				fputc('*', stdout);
 				fputc('\n', stdout);
 				
 				int response_status;
@@ -84,6 +88,7 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 					response_body = "";
 				}
 
+				fprintf(stdout, "Response: %d\n", response_status);
 				session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
 			} );
 		}
