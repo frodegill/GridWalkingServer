@@ -46,7 +46,7 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 #ifdef DBG
 		response_body += ". Expected "+std::to_string(calculated_crc);
 #endif
-		session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
+		session->close(response_status, response_body, {{"Content-Type", "text/plain; charset=utf-8"}, {"Content-Length", std::to_string(response_body.size())}});
 	}
 	else
 	{
@@ -88,8 +88,8 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 					response_body = "";
 				}
 
-				fprintf(stdout, "Response: %d\n", response_status);
-				session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
+				fprintf(stdout, "Response: %d %lu %s\n", response_status, response_body.size(), response_body.c_str());
+				session->close(response_status, response_body, {{"Content-Type", "text/plain; charset=utf-8"}, {"Content-Length", std::to_string(response_body.size())}});
 			} );
 		}
 		else
@@ -105,7 +105,7 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 				response_body = "";
 			}
 			
-			session->close(response_status, response_body, {{"Content-Length", std::to_string(response_body.size())}});
+			session->close(response_status, response_body, {{"Content-Type", "text/plain; charset=utf-8"}, {"Content-Length", std::to_string(response_body.size())}});
 		}
 	}
 }
