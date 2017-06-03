@@ -89,6 +89,7 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 				}
 
 				fprintf(stdout, "Response: %d %lu %s\n", response_status, response_body.size(), response_body.c_str());
+				fflush(stdout);
 				session->close(response_status, response_body, {{"Content-Type", "text/plain; charset=utf-8"}, {"Content-Length", std::to_string(response_body.size())}});
 			} );
 		}
