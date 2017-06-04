@@ -37,5 +37,5 @@ void grids_handler(const std::shared_ptr<restbed::Session> session)
 		}
 	}
 	DB.ReleaseSession(db_session, gridwalking::PocoGlue::COMMIT);
-	session->close(response_status, response_body, {{"Content-Type", "text/plain; charset=utf-8"}, {"Content-Length", std::to_string(response_body.size())}});
+	closeConnection(session, response_status, response_body);
 }

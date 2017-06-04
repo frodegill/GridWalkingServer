@@ -174,6 +174,34 @@ void printGreeting()
 	DB.ReleaseSession(session, gridwalking::PocoGlue::IGNORE);
 }
 
+void closeConnection(const std::shared_ptr<restbed::Session> session, int response_status, const std::string& response_body)
+{
+	char date_str[1000];
+	time_t now = time(0);
+	struct tm tm = *gmtime(&now);
+	strftime(date_str, sizeof(date_str)/sizeof(date_str[0]), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+	session->close(response_status, response_body,
+								 {{"Server", "Grid Walking Server"},
+								  {"Date", date_str},
+								  {"Content-Type", "text/plain; charset=utf-8"},
+								  {"Content-Length", std::to_string(response_body.size())}});
+}
+
+void closeConnection(const std::shared_ptr<restbed::Session> session, int response_status, const restbed::Bytes& response_bytes)
+{
+	char date_str[100];
+	time_t now = time(0);
+	struct tm tm = *gmtime(&now);
+	strftime(date_str, sizeof(date_str)/sizeof(date_str[0]), "%a, %d %b %Y %H:%M:%S %Z", &tm);
+
+	session->close(response_status, response_bytes,
+								 {{"Server", "Grid Walking Server"},
+								  {"Date", date_str},
+								  {"Content-Type", "text/plain; charset=utf-8"},
+								  {"Content-Length", std::to_string(response_bytes.size())}});
+}
+
 int main(int /*argc*/, char** /*argv*/)
 {
 	if (!DB.Initialize(DB_CONNECTION_STRING))

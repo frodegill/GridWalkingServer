@@ -30,6 +30,9 @@ bool render_highscore_list(const Poco::UInt32* user_levels, Poco::UInt32 user_sc
 void append_result(Poco::UInt32 position, const Poco::UInt32* levels, Poco::UInt32 score,
 									 bool include_guid, const std::string& guid, const std::string& name, std::string& result);
 
+void closeConnection(const std::shared_ptr<restbed::Session> session, int response_status, const std::string& response_body);
+void closeConnection(const std::shared_ptr<restbed::Session> session, int response_status, const restbed::Bytes& response_bytes);
+
 int main(int argc, char** argv);
 
 #endif // _MAIN_H_
