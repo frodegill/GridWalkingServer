@@ -18,12 +18,15 @@
 
 extern gridwalking::PocoGlue DB;
 
-void log(const std::string& msg);
+void log_arg(FILE* stream, const char* format, va_list& arguments);
+void log(FILE* stream, const char* format, ...);
 
 void append_uint32(restbed::Bytes& bytes, uint32_t i);
 bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& grid);
 
 int crc(const std::string s);
+
+void nowAsString(char* buf, const size_t& buf_len);
 
 bool render_highscore_list(const Poco::UInt32* user_levels, Poco::UInt32 user_score,
 													 bool include_guid, const std::string& user_guid, const std::string& user_name, std::string& result);

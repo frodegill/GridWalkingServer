@@ -9,9 +9,25 @@
 #include "db.h"
 
 
-void log(const std::string& msg)
+void log_arg(FILE* stream, const char* format, va_list& arguments)
 {
-	fprintf(stderr, "Log: %s\n", msg.c_str());
+	char date_str[100];
+	nowAsString(date_str, sizeof(date_str)/sizeof(date_str[0]));
+	fprintf(stream, "%s: ", date_str);
+
+	vfprintf(stream, format, arguments);
+	fprintf(stream, "\n");
+	fflush(stream);
+}
+
+void log(FILE* stream, const char* format, ...)
+{
+	va_list arguments;
+	va_start(arguments, format);
+	
+	log_arg(stream, format, arguments);
+
+	va_end(arguments);
 }
 
 void append_byte(restbed::Bytes& bytes, const uint8_t b)
@@ -161,7 +177,7 @@ void printGreeting()
 	Poco::Data::Session* session;
 	if (!DB.CreateSession(session))
 	{
-		fprintf(stdout, "Creating session failed\n");
+		::log(stdout, "Creating session failed\n");
 		return;
 	}
 	
@@ -170,17 +186,21 @@ void printGreeting()
 		Poco::Data::Keywords::into(highscore),
 		Poco::Data::Keywords::now;)
 
-	fprintf(stdout, "GridWalkingServer operational. Current highscore:%d\n", highscore);
+	::log(stdout, "GridWalkingServer operational. Current highscore:%d\n", highscore);
 	DB.ReleaseSession(session, gridwalking::PocoGlue::IGNORE);
+}
+
+void nowAsString(char* buf, const size_t& buf_len)
+{
+	time_t now = time(0);
+	struct tm tm = *gmtime(&now);
+	::strftime(buf, buf_len-1, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 }
 
 void closeConnection(const std::shared_ptr<restbed::Session> session, int response_status, const std::string& response_body)
 {
-	char date_str[1000];
-	time_t now = time(0);
-	struct tm tm = *gmtime(&now);
-	strftime(date_str, sizeof(date_str)/sizeof(date_str[0]), "%a, %d %b %Y %H:%M:%S %Z", &tm);
-
+	char date_str[100];
+	nowAsString(date_str, sizeof(date_str)/sizeof(date_str[0]));
 	session->close(response_status, response_body,
 								 {{"Server", "Grid Walking Server"},
 								  {"Date", date_str},

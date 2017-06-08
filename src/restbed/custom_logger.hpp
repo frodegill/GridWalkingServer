@@ -3,6 +3,9 @@
 #include <cstdarg>
 #include <restbed>
 
+#include "../main.h"
+
+
 using namespace std;
 using namespace restbed;
 
@@ -24,8 +27,7 @@ class CustomLogger : public Logger
             va_list arguments;
             va_start( arguments, format );
             
-            vfprintf( stderr, format, arguments );
-            fprintf( stderr, "\n" );
+						::log_arg(stderr, format, arguments);
             
             va_end( arguments );
         }

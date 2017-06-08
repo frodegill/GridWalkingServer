@@ -54,7 +54,7 @@ bool PocoGlue::CreateSession(Poco::Data::Session*& session)
 	}
 	catch (Poco::Exception e)
 	{
-		::log(e.displayText());
+		::log(stderr, e.displayText().c_str());
 	}
 	return false;
 }

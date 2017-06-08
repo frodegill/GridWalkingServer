@@ -53,11 +53,11 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 		size_t length = request->get_header("Content-Length", 0);
 		if (length > 0)
 		{
-			fprintf(stdout, "Provides %ld bytes\n", length);
+			::log(stdout, "Provides %ld bytes\n", length);
 
 			session->fetch(length, [param_guid,level,score,bonus,param_name](const std::shared_ptr<restbed::Session> session, const restbed::Bytes& body)
 			{
-				fprintf(stdout, "Within Lambda: %ld bytes\n", body.size());
+				::log(stdout, "Within Lambda: %ld bytes\n", body.size());
 
 				size_t i;
 				for (i=0; i<body.size(); i++)
@@ -88,15 +88,14 @@ void sync_handler(const std::shared_ptr<restbed::Session> session)
 					response_body = "";
 				}
 
-				fprintf(stdout, "Response: %d %lu %s\n", response_status, response_body.size(), response_body.c_str());
-				fflush(stdout);
+				::log(stdout, "Response: %d %lu %s\n", response_status, response_body.size(), response_body.c_str());
 				
 				closeConnection(session, response_status, response_body);
 			} );
 		}
 		else
 		{
-			fprintf(stdout, "Provided no body\n");
+			::log(stdout, "Provided no body\n");
 
 			if (render_highscore_list(level, score, true, param_guid, param_name, response_body)) {
 				response_status = restbed::OK;

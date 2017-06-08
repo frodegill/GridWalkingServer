@@ -20,8 +20,8 @@
 
 #ifdef DBG
 # define DEBUG_TRY_CATCH(...)	try {__VA_ARGS__} \
-                              catch (Poco::Exception e) {::log(e.displayText());} \
-                              catch (...) {::log("Got generic exception\n");}
+                              catch (Poco::Exception e) {::log(stderr, e.displayText().c_str());} \
+                              catch (...) {::log(stderr, "Got generic exception");}
 #else
 # define DEBUG_TRY_CATCH(...)	__VA_ARGS__
 #endif
