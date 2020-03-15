@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `gridwalking`.`grid` (
   `grid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_grid_user1_idx` (`owner` ASC),
+  UNIQUE INDEX `owner_grid_UNIQUE` (`owner` ASC, `grid` ASC))
   CONSTRAINT `fk_grid_user`
     FOREIGN KEY (`owner`)
     REFERENCES `gridwalking`.`user` (`id`)
