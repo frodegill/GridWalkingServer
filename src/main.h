@@ -13,7 +13,7 @@
  #define SECURE
 #endif
 
-#define MAX_HIGHSCORE_ENTRIES (10)
+#define MAX_HIGHSCORE_ENTRIES (20)
 
 
 extern gridwalking::PocoGlue DB;
