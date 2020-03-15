@@ -52,7 +52,7 @@ bool PocoGlue::CreateSession(Poco::Data::Session*& session)
 
 		return true;
 	}
-	catch (Poco::Exception e)
+	catch (Poco::Exception& e)
 	{
 		::log(stderr, e.displayText().c_str());
 	}
