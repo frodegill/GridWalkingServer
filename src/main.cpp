@@ -249,7 +249,7 @@ int main(int /*argc*/, char** /*argv*/)
 	ssl_settings->set_http_disabled(true);
 	ssl_settings->set_sslv2_enabled(false);
 	ssl_settings->set_sslv3_enabled(false);
-	ssl_settings->set_tlsv1_enabled(false);
+	ssl_settings->set_tlsv1_enabled(true);
 	ssl_settings->set_tlsv11_enabled(true);
 	ssl_settings->set_tlsv12_enabled(true);
 	ssl_settings->set_private_key(restbed::Uri("file://gill-roxrud.dyndns.org.key"));
