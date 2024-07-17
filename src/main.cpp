@@ -4,6 +4,7 @@
 #include "grids_handler.h"
 #include "highscore_handler.h"
 #include "sync_handler.h"
+#include "sync2_handler.h"
 #include "restbed/custom_logger.hpp"
 
 #include "db.h"
@@ -43,16 +44,16 @@ void append_uint32(restbed::Bytes& bytes, uint32_t i)
 	append_byte(bytes, i&0x000000FF);
 }
 
-bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& grid)
+bool fetch_uint32(restbed::Bytes::const_iterator& iter, const restbed::Bytes::const_iterator& end, uint32_t& value)
 {
-	grid = 0;
+	value = 0;
 	uint8_t i;
 	for (i=0; i<4; i++)
 	{
 		if (iter==end)
 			return false;
 		else
-			grid = (grid<<8)|(*iter++);
+			value = (value<<8)|(*iter++);
 	}
 	return true;
 }
@@ -239,6 +240,12 @@ int main(int /*argc*/, char** /*argv*/)
 																				 "/{ld: [0-9]*}/{lc: [0-9]*}/{lb: [0-9]*}/{la: [0-9]*}/{name: .*}");
 	sync_resource->set_method_handler("POST", sync_handler);
 
+	auto sync_resource2 = std::make_shared<restbed::Resource>();
+	sync_resource2->set_path("sync2/{guid: .*}/{ln: [0-9]*}/{lm: [0-9]*}/{ll: [0-9]*}/{lk: [0-9]*}/{lj: [0-9]*}"\
+	                                       "/{li: [0-9]*}/{lh: [0-9]*}/{lg: [0-9]*}/{lf: [0-9]*}/{le: [0-9]*}"\
+																				 "/{ld: [0-9]*}/{lc: [0-9]*}/{lb: [0-9]*}/{la: [0-9]*}/{name: .*}");
+	sync_resource2->set_method_handler("POST", sync2_handler);
+
 	auto grids_resource = std::make_shared<restbed::Resource>();
 	grids_resource->set_path("grids/{guid: .*}");
 	grids_resource->set_method_handler("GET", grids_handler);
@@ -270,6 +277,7 @@ int main(int /*argc*/, char** /*argv*/)
 	restbed::Service service;
 	service.publish(highscore_resource);
 	service.publish(sync_resource);
+	service.publish(sync_resource2);
 	service.publish(grids_resource);
   service.set_logger(make_shared<CustomLogger>());
 

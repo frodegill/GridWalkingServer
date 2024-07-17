@@ -51,3 +51,19 @@ CREATE TABLE IF NOT EXISTS `gridwalking`.`grid` (
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table `gridwalking`.`bonus`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `gridwalking`.`bonus` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `owner` INT UNSIGNED NOT NULL,
+  `bonus` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_bonus_user1_idx` (`owner` ASC),
+  CONSTRAINT `fk_bonus_user`
+    FOREIGN KEY (`owner`)
+    REFERENCES `gridwalking`.`user` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
