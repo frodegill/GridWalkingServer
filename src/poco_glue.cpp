@@ -67,6 +67,7 @@ void PocoGlue::ReleaseSession(Poco::Data::Session* session, TransactionCommand c
 	switch(command)
 	{
 		case COMMIT: session->commit(); break;
+		case IGNORE: //fallthrough
 		case ROLLBACK: session->rollback(); break;
 		default: break;
 	}
